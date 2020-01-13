@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart';
 
 import '../providers/product.dart';
 import '../providers/productsProvider.dart';
@@ -98,11 +99,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
     
     
     if (_editedProd.id != null) {
-      print('id not null');
       Provider.of<Products>(context, listen: false).updateProducts(_editedProd.id, _editedProd);
     } 
     else {
-      print('got else');
+      
       Provider.of<Products>(context, listen: false).addProduct(_editedProd);
     }
 

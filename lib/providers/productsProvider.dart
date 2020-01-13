@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import './product.dart';
 
@@ -51,25 +54,41 @@ class Products with ChangeNotifier {
   }
 
   void addProduct(Product p) {
-    final newProduct = Product(
-      title: p.title,
-      description: p.description,
-      imageUrl: p.imageUrl,
-      price: p.price,
-      id: DateTime.now().toString(),
-    );
-    _items.add(newProduct);
-    // _items.insert(0, newProduct); // add at the start of the list
-    notifyListeners();
+    const url = 'https://jeremy-flutter-shop-app.firebaseio.com/products.json';
+
+    http
+        .post(
+      url,
+      body: json.encode({
+        'title': p.title,
+        'description': p.description,
+        'imageUrl': p.imageUrl,
+        'price': p.price,
+        'isFavorite': p.isFavorite,
+      }),
+    )
+        .then((response) {
+      print(json.decode(response.body));
+      final newProduct = Product(
+        title: p.title,
+        description: p.description,
+        imageUrl: p.imageUrl,
+        price: p.price,
+        id: json.decode(response.body)['name'],
+      );
+      _items.add(newProduct);
+      
+      // _items.insert(0, newProduct); // add at the start of the list
+      notifyListeners();
+    });
   }
 
-  void updateProducts(String id, Product newP){
+  void updateProducts(String id, Product newP) {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
-    if (prodIndex >=0){
+    if (prodIndex >= 0) {
       _items[prodIndex] = newP;
       notifyListeners();
-    }
-    else {
+    } else {
       print('...');
     }
   }
