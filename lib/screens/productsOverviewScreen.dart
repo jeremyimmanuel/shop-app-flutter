@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +24,37 @@ class ProductOverviewScreen extends StatefulWidget {
 
 class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
   var _showOnlyFav = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  @override
+  void initState() {
+    // Provider.of<Products>(context).fetchAndSetProducts(); WON'T WORK, will work if listen: false though
+    // Future.delayed(Duration.zero).then((_){
+    //   Provider.of<Products>(context).fetchAndSetProducts();
+    // });
+
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<Products>(context).fetchAndSetProducts().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    ;
+    _isInit = false;
+
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,21 +86,24 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
           ),
           Consumer<Cart>(
             child: IconButton(
-                icon: Icon(Icons.shopping_cart),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(CartScreen.routeName);
-                },
-              ),
+              icon: Icon(Icons.shopping_cart),
+              onPressed: () {
+                Navigator.of(context).pushNamed(CartScreen.routeName);
+              },
+            ),
             builder: (_, cart, ch) => Badge(
               child: ch,
               value: cart.itemCount.toString(),
             ),
-            
           ),
         ],
       ),
       drawer: AppDrawer(),
-      body: ProductsGrid(_showOnlyFav),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ProductsGrid(_showOnlyFav),
     );
   }
 }

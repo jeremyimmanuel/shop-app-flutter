@@ -82,17 +82,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   void _updateImageUrl() {
     if (!_imageUrlFocusNode.hasFocus) {
-      String value = _imageUrlController.text;
-      if ((!value.startsWith('http') && !value.startsWith('https')) ||
-          (!value.endsWith('.png') &&
-              !value.startsWith('.jpg') &&
-              !value.startsWith('.jpeg'))) return;
-
+      if ((!_imageUrlController.text.startsWith('http') &&
+              !_imageUrlController.text.startsWith('https')) ||
+          (!_imageUrlController.text.endsWith('.png') &&
+              !_imageUrlController.text.endsWith('.jpg') &&
+              !_imageUrlController.text.endsWith('.jpeg'))) {
+        return;
+      }
       setState(() {});
     }
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     final isValid = _form.currentState.validate();
     if (!isValid) return;
 
@@ -109,14 +110,32 @@ class _EditProductScreenState extends State<EditProductScreen> {
         _isLoading = false;
       });
     } else {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_editedProd)
-          .then((_) {
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .addProduct(_editedProd);
+      } catch (error) {
+        print('error caught');
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('An error occured!'),
+            content: Text('Something went wrong!'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Okay'),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+              )
+            ],
+          ),
+        );
+      } finally {
         setState(() {
           _isLoading = false;
         });
         Navigator.of(context).pop();
-      });
+      }
     }
   }
 
